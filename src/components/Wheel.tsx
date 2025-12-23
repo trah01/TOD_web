@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 
 interface WheelProps {
     players: string[];
@@ -6,77 +6,95 @@ interface WheelProps {
 }
 
 const COLORS = [
-    '#FF9AA2', // Soft Red
-    '#FFB7B2', // Salmon
-    '#FFDAC1', // Peach
-    '#E2F0CB', // Mint
-    '#B5EAD7', // Aqua
-    '#C7CEEA', // Periwinkle
-    '#E0BBE4', // Lavender
-    '#FCD5CE', // Rose Quartz
-    '#A0E7E5', // Light Tiffany
-    '#FBC4AB'  // Apricot
+    '#6366F1', // Indigo 靛蓝
+    '#F472B6', // Pink 粉色
+    '#34D399', // Emerald 翡翠绿
+    '#FBBF24', // Amber 琥珀
+    '#A78BFA', // Violet 紫罗兰
+    '#38BDF8', // Sky 天蓝
+    '#FB923C', // Orange 橙色
+    '#4ADE80', // Green 草绿
+    '#F87171', // Red 珊瑚红
+    '#22D3EE', // Cyan 青色
+    '#E879F9', // Fuchsia 洋红
+    '#A3E635', // Lime 青柠
 ];
+
+const TOTAL_SEGMENTS = 100; // 总共100份
+
+// 使用基于种子的随机数生成器，确保同一组玩家的分布是一致的
+const seededRandom = (seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+};
+
+// 生成不均匀分布的分段
+const generateSegments = (players: string[]) => {
+    if (players.length === 0) return [];
+
+    // 为每个玩家创建分段
+    const segments: number[] = [];
+
+    // 初始分配：交错但有一定随机性
+    for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+        // 基本的交错分配
+        const basePlayer = i % players.length;
+        segments.push(basePlayer);
+    }
+
+    // 使用 Fisher-Yates 洗牌算法打乱顺序，但使用基于玩家名的种子
+    const seed = players.join('').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    for (let i = segments.length - 1; i > 0; i--) {
+        const j = Math.floor(seededRandom(seed + i) * (i + 1));
+        [segments[i], segments[j]] = [segments[j], segments[i]];
+    }
+
+    return segments;
+};
 
 export const Wheel = ({ players, onSpinEnd }: WheelProps) => {
     const [spinning, setSpinning] = useState(false);
     const rotationRef = useRef(0);
     const wheelRef = useRef<HTMLDivElement>(null);
 
+    // 生成100个不均匀分布的分段
+    const segments = useMemo(() => generateSegments(players), [players]);
+
+    const segmentSize = 360 / TOTAL_SEGMENTS; // 每个分段的角度
+
     const spin = () => {
         if (spinning) return;
         setSpinning(true);
 
-        const newRotation = rotationRef.current + 1800 + Math.random() * 360;
+        // 增加旋转圈数到约15-20圈 (5400-7200度)，让转盘转得更快更多圈
+        const newRotation = rotationRef.current + 5400 + Math.random() * 1800;
         rotationRef.current = newRotation;
 
         if (wheelRef.current) {
-            wheelRef.current.style.transition = 'transform 4s cubic-bezier(0.1, 0, 0.2, 1)';
+            // 使用更自然的减速缓动：前期快，后期慢慢停下来
+            wheelRef.current.style.transition = 'transform 5s cubic-bezier(0.0, 0.4, 0.2, 1)';
             wheelRef.current.style.transform = `rotate(${newRotation}deg)`;
         }
 
         setTimeout(() => {
             setSpinning(false);
-            // const _degrees = newRotation % 360;
-            // Calculate index based on degrees. 
-            // 0 deg is at 3 o'clock usually in CSS standard rotation, but let's check alignment.
-            // We will assume standard logic and fine tune if needed.
-            // The pointer is usually at top (270deg) or right (0deg).
-            // Let's assume pointer is at the TOP.
-            // If pointer is at top, we need to correct the offset.
 
-            const segmentSize = 360 / players.length;
-            // We want the value at 270 degrees (Top)
-            // The wheel rotates moves functionality.
-            // Effective angle at top = (360 - (degrees % 360) + 270) % 360 ??
-            // Let's simplify: 
-            // The item at the top is the one that was at (original_pos - rotation) match Top.
+            // 计算停在哪个分段
+            const normalizedRotation = ((360 - (newRotation % 360)) % 360);
+            const segmentIndex = Math.floor(normalizedRotation / segmentSize);
+            const playerIndex = segments[segmentIndex];
 
-            // Not 100% sure on the +90 (since 0 starts at right, top is -90 or 270), 
-            // but usually we just calculate relative to start.
-            // Let's rely on simple math:
-            // index = floor((360 - finalAngle % 360) / segmentAngle) if pointer is at 0 (Right).
-            // If pointer is at Top (270/-90), we need to shift.
-            // Actually simpler:
-            // normalized = (360 - rotation % 360) % 360
-            // index = floor(normalized / segmentSize) -> this assumes pointer at 0 (right).
-            // If pointer is Top, we add offsets? No, let's just rotate the wheel so 0 is at top initially?
-
-            // Let's just adjust the calculation after testing visually or use a robust formula.
-            // Formula for pointer at TOP:
-            // index = Math.floor( ( (360 - (rotationRef.current % 360)) % 360 ) / segmentSize )
-            // (This assumes 0 deg is top, which we can force via CSS start rotation)
-
-            onSpinEnd(players[Math.floor(((360 - (newRotation % 360)) % 360) / segmentSize)]);
-        }, 4000);
+            onSpinEnd(players[playerIndex]);
+        }, 5000);
     };
 
+    // 生成100份的渐变色
     const wheelStyle = {
         background: `conic-gradient(
-      ${players.map((_, i) =>
-            `${COLORS[i % COLORS.length]} ${i * (360 / players.length)}deg ${(i + 1) * (360 / players.length)}deg`
+            ${segments.map((playerIndex, i) =>
+            `${COLORS[playerIndex % COLORS.length]} ${i * segmentSize}deg ${(i + 1) * segmentSize}deg`
         ).join(', ')}
-    )`
+        )`
     };
 
     return (
@@ -87,46 +105,24 @@ export const Wheel = ({ players, onSpinEnd }: WheelProps) => {
                 ref={wheelRef}
                 style={wheelStyle}
             >
-                {players.map((_, i) => (
-                    <div
-                        key={i}
-                        className="wheel-label"
-                        style={{
-                            transform: `rotate(${i * (360 / players.length) + (360 / players.length) / 2}deg) translateY(0px) translateX(50%)`,
-                            transformOrigin: 'center center' // This is tricky in pure CSS
-                        }}
-                    >
-                        {/* Text rotation logic is complex here, let's simplify for now 
-                 We will use a different approach for labels if needed or just colors
-                 to keep it stable first. 
-                 Actually, adding text inside a conic gradient is hard without absolute positioned children.
-             */}
-                    </div>
-                ))}
-                {/* Render separate label layer */}
-                <div className="wheel-labels">
-                    {players.map((player, i) => (
-                        <div
-                            key={i}
-                            className="wheel-text-segment"
-                            style={{
-                                transform: `rotate(${i * (360 / players.length) + (360 / players.length) / 2}deg) translate(0, -50%)`,
-                            }}
-                        >
-                            <span style={{
-                                transform: `rotate(90deg)`,
-                                display: 'inline-block',
-                                marginLeft: '50%'
-                            }}>
-                                {player}
-                            </span>
-                        </div>
-                    ))}
-                </div>
+                {/* 由于分段太多，不再显示每个分段的标签 */}
+                {/* 可以在中心显示玩家列表或者用图例说明 */}
             </div>
             <button className="spin-btn" onClick={spin} disabled={spinning}>
                 {spinning ? '...' : 'SPIN'}
             </button>
+            {/* 显示玩家颜色图例 */}
+            <div className="wheel-legend">
+                {players.map((player, i) => (
+                    <div key={i} className="legend-item">
+                        <span
+                            className="legend-color"
+                            style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                        />
+                        <span className="legend-name">{player}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

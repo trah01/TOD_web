@@ -528,6 +528,20 @@ button {
   animation: scaleIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* 静止的边框和阴影层 */
+.wheel-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px white, var(--shadow-lg);
+  pointer-events: none;
+  z-index: 2;
+}
+
 .wheel-pointer {
   position: absolute;
   top: -15px;
@@ -545,7 +559,7 @@ button {
   border-radius: 50%;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 0 5px white, var(--shadow-lg);
+  /* 阴影移到容器的伪元素上，这里只保留旋转 */
   transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1);
 }
 
@@ -696,6 +710,38 @@ button {
   color: var(--text-secondary);
   font-size: 0.85rem;
   margin-bottom: 12px;
+}
+
+/* Wheel Legend */
+.wheel-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.legend-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
 }
 
 /* Responsive */
