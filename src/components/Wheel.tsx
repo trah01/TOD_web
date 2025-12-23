@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 interface WheelProps {
     players: string[];
@@ -37,7 +37,7 @@ export const Wheel = ({ players, onSpinEnd }: WheelProps) => {
 
         setTimeout(() => {
             setSpinning(false);
-            const degrees = newRotation % 360;
+            // const _degrees = newRotation % 360;
             // Calculate index based on degrees. 
             // 0 deg is at 3 o'clock usually in CSS standard rotation, but let's check alignment.
             // We will assume standard logic and fine tune if needed.
@@ -52,7 +52,6 @@ export const Wheel = ({ players, onSpinEnd }: WheelProps) => {
             // Let's simplify: 
             // The item at the top is the one that was at (original_pos - rotation) match Top.
 
-            const winningIndex = Math.floor(((360 - degrees % 360) + 90) % 360 / segmentSize);
             // Not 100% sure on the +90 (since 0 starts at right, top is -90 or 270), 
             // but usually we just calculate relative to start.
             // Let's rely on simple math:
@@ -88,7 +87,7 @@ export const Wheel = ({ players, onSpinEnd }: WheelProps) => {
                 ref={wheelRef}
                 style={wheelStyle}
             >
-                {players.map((player, i) => (
+                {players.map((_, i) => (
                     <div
                         key={i}
                         className="wheel-label"
