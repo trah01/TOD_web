@@ -129,6 +129,7 @@ function App() {
         {/* Header is always visible unless in specific sub-states if needed, but let's keep it */}
         <div className="title-section">
           <h1 className="main-title">
+            <img src="/logo.svg" alt="ToD Logo" style={{ width: '42px', height: '42px', display: 'block' }} />
             真心话 <span className="title-or">or</span> 大冒险
           </h1>
           {step === 'setup' && <div className="subtitle">选择游戏模式</div>}

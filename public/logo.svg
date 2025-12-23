@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#6366F1" />
+            <stop offset="100%" style="stop-color:#E879F9" />
+        </linearGradient>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="rgba(99, 102, 241, 0.25)"/>
+        </filter>
+    </defs>
+    
+    <g filter="url(#shadow)">
+        <!-- Speech Bubble -->
+        <path d="M96 156C96 102.981 138.981 60 192 60H320C373.019 60 416 102.981 416 156V284C416 337.019 373.019 380 320 380H240L160 452V380H192C138.981 380 96 337.019 96 284V156Z" 
+              fill="url(#grad1)"/>
+    </g>
+    
+    <!-- Lightning Bolt -->
+    <path d="M298 120L190 280H258L228 410L358 240H282L298 120Z" 
+          fill="white" 
+          stroke="none"/>
+</svg>
